@@ -2,14 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import OnboardingWizard from './OnboardingWizard';
 import { Loader2 } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 interface OnboardingContainerProps {
   children: React.ReactNode;
 }
 
 const OnboardingContainer: React.FC<OnboardingContainerProps> = ({ children }) => {
-  const { isCompleted, loadFromStorage } = useOnboardingStore();
+  const { isCompleted, loadFromStorage, resetData } = useOnboardingStore();
   const [isLoading, setIsLoading] = useState(true);
+  const [location] = useLocation();
+
+  // Check if user explicitly wants onboarding
+  const showOnboarding = location.includes('?onboarding=true') || location.includes('/onboarding');
 
   useEffect(() => {
     // Load saved onboarding data on mount
@@ -26,6 +31,13 @@ const OnboardingContainer: React.FC<OnboardingContainerProps> = ({ children }) =
     loadData();
   }, [loadFromStorage]);
 
+  // If user requests onboarding explicitly, show it
+  useEffect(() => {
+    if (showOnboarding && isCompleted) {
+      resetData();
+    }
+  }, [showOnboarding]);
+
   // Show loading spinner while checking onboarding status
   if (isLoading) {
     return (
@@ -38,8 +50,8 @@ const OnboardingContainer: React.FC<OnboardingContainerProps> = ({ children }) =
     );
   }
 
-  // Show onboarding wizard if not completed
-  if (!isCompleted) {
+  // Show onboarding wizard if not completed OR explicitly requested
+  if (!isCompleted || showOnboarding) {
     return (
       <div className="min-h-screen bg-gray-50">
         <OnboardingWizard />

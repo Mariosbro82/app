@@ -40,6 +40,7 @@ function AppRouter() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/onboarding" component={Home} /> {/* Onboarding is handled by OnboardingContainer */}
       <Route path="/questions" component={Questions} />
       <Route path="/debug" component={DebugImages} />
       <Route path="/tax-calculator" component={TaxCalculatorPage} />
