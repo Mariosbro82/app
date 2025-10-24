@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,9 +14,6 @@ import DebugImages from "@/pages/debug-images";
 import TaxCalculatorPage from "@/pages/TaxCalculatorPage";
 import NotFound from "@/pages/not-found";
 import OnboardingContainer from "@/components/onboarding/OnboardingContainer";
-
-// Get base path from environment (matches vite.config.ts)
-const base = import.meta.env.BASE_URL;
 
 // Lazy load legal pages for better performance
 const Impressum = lazy(() => import("@/pages/impressum"));
@@ -39,32 +36,30 @@ const LegalPageLoader = () => (
   </div>
 );
 
-function Router() {
+function AppRouter() {
   return (
-    <WouterRouter base={base}>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/questions" component={Questions} />
-        <Route path="/debug" component={DebugImages} />
-        <Route path="/tax-calculator" component={TaxCalculatorPage} />
-        <Route path="/impressum">
-          <Suspense fallback={<LegalPageLoader />}>
-            <Impressum />
-          </Suspense>
-        </Route>
-        <Route path="/datenschutz">
-          <Suspense fallback={<LegalPageLoader />}>
-            <Datenschutz />
-          </Suspense>
-        </Route>
-        <Route path="/agb">
-          <Suspense fallback={<LegalPageLoader />}>
-            <AGB />
-          </Suspense>
-        </Route>
-        <Route component={NotFound} />
-      </Switch>
-    </WouterRouter>
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/questions" component={Questions} />
+      <Route path="/debug" component={DebugImages} />
+      <Route path="/tax-calculator" component={TaxCalculatorPage} />
+      <Route path="/impressum">
+        <Suspense fallback={<LegalPageLoader />}>
+          <Impressum />
+        </Suspense>
+      </Route>
+      <Route path="/datenschutz">
+        <Suspense fallback={<LegalPageLoader />}>
+          <Datenschutz />
+        </Suspense>
+      </Route>
+      <Route path="/agb">
+        <Suspense fallback={<LegalPageLoader />}>
+          <AGB />
+        </Suspense>
+      </Route>
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
@@ -77,7 +72,7 @@ function App() {
           <div className="min-h-screen flex flex-col">
             <Toaster />
             <main className="flex-1">
-              <Router />
+              <AppRouter />
             </main>
             <Footer />
           </div>

@@ -109,7 +109,7 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
   currentStep: 'personal',
   data: initialData,
   errors: {},
-  isCompleted: false,
+  isCompleted: true, // Skip onboarding by default - users can access calculator immediately
 
   // Actions
   setCurrentStep: (step) => {
@@ -432,12 +432,12 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
   resetData: () => {
     // Clear storage
     OnboardingStorageService.clearData();
-    
+
     set({
       currentStep: 'personal',
       data: initialData,
       errors: {},
-      isCompleted: false
+      isCompleted: true // Keep calculator accessible after reset
     });
   },
 
@@ -454,23 +454,25 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
     try {
       const storedData = OnboardingStorageService.loadData();
       const isCompleted = OnboardingStorageService.isCompleted();
-      
+
       if (storedData) {
-        set({ 
+        set({
           data: { ...initialData, ...storedData },
-          isCompleted 
+          isCompleted
         });
       } else {
-        set({ 
+        // Default to completed so users can access calculator immediately
+        set({
           data: initialData,
-          isCompleted: false 
+          isCompleted: true
         });
       }
     } catch (error) {
       console.error('Failed to load onboarding data:', error);
-      set({ 
+      // Default to completed even on error
+      set({
         data: initialData,
-        isCompleted: false 
+        isCompleted: true
       });
     }
   },
