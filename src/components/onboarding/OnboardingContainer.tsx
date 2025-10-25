@@ -24,18 +24,23 @@ const OnboardingContainer: React.FC<OnboardingContainerProps> = ({ children }) =
 
         if (isMounted && !dataLoaded) {
           dataLoaded = true;
-          // Use centralized validation (single source of truth)
-          const persistedData = OnboardingStorageService.loadData();
-          const completed = OnboardingStorageService.isCompleted(persistedData);
-          console.log('[OnboardingContainer] Data loaded, completed:', completed);
-          setShowOnboarding(!completed);
+          try {
+            // Use centralized validation (single source of truth)
+            const persistedData = OnboardingStorageService.loadData();
+            const completed = OnboardingStorageService.isCompleted(persistedData);
+            console.log('[OnboardingContainer] Data loaded, completed:', completed);
+            setShowOnboarding(!completed);
+          } catch (storageError) {
+            console.error('[OnboardingContainer] Storage check failed:', storageError);
+            // On storage error, default to showing onboarding
+            setShowOnboarding(true);
+          }
           setIsLoading(false);
         }
       } catch (error) {
         console.error('[OnboardingContainer] Failed to load onboarding data:', error);
         if (isMounted && !dataLoaded) {
           dataLoaded = true;
-          setError('Fehler beim Laden der Daten');
           // On error, show onboarding to allow user to start fresh
           setShowOnboarding(true);
           setIsLoading(false);
@@ -48,11 +53,17 @@ const OnboardingContainer: React.FC<OnboardingContainerProps> = ({ children }) =
     const timeoutId = setTimeout(() => {
       if (isMounted && !dataLoaded) {
         dataLoaded = true;
-        // Use centralized validation (single source of truth)
-        const persistedData = OnboardingStorageService.loadData();
-        const completed = OnboardingStorageService.isCompleted(persistedData);
-        console.log('[OnboardingContainer] Timeout triggered, completed:', completed);
-        setShowOnboarding(!completed);
+        try {
+          // Use centralized validation (single source of truth)
+          const persistedData = OnboardingStorageService.loadData();
+          const completed = OnboardingStorageService.isCompleted(persistedData);
+          console.log('[OnboardingContainer] Timeout triggered, completed:', completed);
+          setShowOnboarding(!completed);
+        } catch (storageError) {
+          console.error('[OnboardingContainer] Storage check failed in timeout:', storageError);
+          // On storage error, default to showing onboarding
+          setShowOnboarding(true);
+        }
         setIsLoading(false);
       }
     }, 1000);
