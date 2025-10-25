@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useOnboardingStore } from '../../stores/onboardingStore';
+import { OnboardingStorageService } from '../../services/onboardingStorage';
 import OnboardingWizard from './OnboardingWizard';
 import { Loader2 } from 'lucide-react';
 
@@ -14,32 +15,57 @@ const OnboardingContainer: React.FC<OnboardingContainerProps> = ({ children }) =
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    let dataLoaded = false;
+
     const loadData = async () => {
       try {
         await loadFromStorage();
-        // Show onboarding wizard if not completed
-        setShowOnboarding(!isCompleted);
+
+        if (isMounted && !dataLoaded) {
+          dataLoaded = true;
+          // Use centralized validation (single source of truth)
+          const persistedData = OnboardingStorageService.loadData();
+          const completed = OnboardingStorageService.isCompleted(persistedData);
+          console.log('[OnboardingContainer] Data loaded, completed:', completed);
+          setShowOnboarding(!completed);
+          setIsLoading(false);
+        }
       } catch (error) {
-        console.error('Failed to load onboarding data:', error);
-        setError('Fehler beim Laden der Daten');
-        // On error, show onboarding to allow user to start fresh
-        setShowOnboarding(true);
-      } finally {
-        setIsLoading(false);
+        console.error('[OnboardingContainer] Failed to load onboarding data:', error);
+        if (isMounted && !dataLoaded) {
+          dataLoaded = true;
+          setError('Fehler beim Laden der Daten');
+          // On error, show onboarding to allow user to start fresh
+          setShowOnboarding(true);
+          setIsLoading(false);
+        }
       }
     };
 
-    // Set a 1-second max timeout to always show something
+    // Safety timeout: Always show something after 1 second
+    // This prevents infinite loading if loadFromStorage hangs
     const timeoutId = setTimeout(() => {
-      setIsLoading(false);
+      if (isMounted && !dataLoaded) {
+        dataLoaded = true;
+        // Use centralized validation (single source of truth)
+        const persistedData = OnboardingStorageService.loadData();
+        const completed = OnboardingStorageService.isCompleted(persistedData);
+        console.log('[OnboardingContainer] Timeout triggered, completed:', completed);
+        setShowOnboarding(!completed);
+        setIsLoading(false);
+      }
     }, 1000);
 
     loadData();
 
-    return () => clearTimeout(timeoutId);
-  }, [loadFromStorage, isCompleted]);
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [loadFromStorage]); // Only depend on loadFromStorage, not isCompleted
 
-  // React to onboarding completion changes (when wizard completes)
+  // React to onboarding completion changes (when wizard completes during session)
   useEffect(() => {
     if (isCompleted) {
       setShowOnboarding(false);

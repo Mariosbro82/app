@@ -427,14 +427,13 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
   completeOnboarding: () => {
     const { data } = get();
     const completedData = { ...data, completedAt: new Date().toISOString() };
-    
-    // Save completion status
+
+    // Save completion status (completedAt in data is the single source of truth)
     OnboardingStorageService.saveData(completedData);
-    OnboardingStorageService.setCompleted(true);
-    
-    set({ 
+
+    set({
       data: completedData,
-      isCompleted: true 
+      isCompleted: true
     });
   },
 
